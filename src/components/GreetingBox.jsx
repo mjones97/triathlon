@@ -3,7 +3,7 @@ import React from 'react'
 const GreetingBox = () => {
 	return (
 		<div
-		    className="relative bg-cover bg-center flex justify-center items-center text-center text-white mx-6 w-full h-5/6 rounded-lg"
+		    className="relative bg-cover bg-center flex justify-center items-center text-center text-white mx-6 w-full h-52 rounded-lg"
 		    style={{
 		    	backgroundImage: "url('https://bettertriathlete.com/wp-content/uploads/2023/07/triathlon-swim-workouts.jpg')",
 		    }}

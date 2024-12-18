@@ -21,7 +21,7 @@ const ProgressTracker = () => {
   };
 
   return (
-    <div className="space-y-4 p-6">
+    <div className="space-y-4 px-6 pb-16">
       {/* Daily Progress Section */}
       <div className="w-full p-6 bg-gray-100 rounded-lg shadow-md mb-6 max-w-full">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Daily Progress</h3>

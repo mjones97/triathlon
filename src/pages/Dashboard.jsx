@@ -4,7 +4,7 @@ import Progress from '../components/Progress'
 
 const Dashboard = ({ isDarkMode }) => {
 	return (
-		<section className={`dashboard pt-12 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`}>
+		<section className={`dashboard pt-14 ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-200 text-black'}`}>
 			<div className="container">
 				<div className="flex justify-center items-center h-64">
 					<GreetingBox />
