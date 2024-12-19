@@ -2,9 +2,24 @@ import React, { useState } from 'react';
 
 const ProgressTracker = () => {
   const [sports, setSports] = useState([
-    { name: 'Swimming', daily: [500, 600, 450, 500, 550, 400, 550], goal: 3500, color: 'bg-blue-500' },
-    { name: 'Cycling', daily: [10, 15, 20, 10, 12, 18, 25], goal: 100, color: 'bg-green-500' },
-    { name: 'Running', daily: [5, 6, 4, 5, 7, 8, 6], goal: 30, color: 'bg-orange-500' },
+    {
+      name: 'Swimming',
+      goal: 3500, // Total yards
+      color: 'bg-blue-500', // Blue color for swimming
+      daily: [500, 600, 450, 500, 550, 400, 550], // Daily progress (yards)
+    },
+    {
+      name: 'Cycling',
+      goal: 100, // Total miles
+      color: 'bg-green-500', // Green color for cycling
+      daily: [10, 15, 20, 10, 12, 18, 25], // Daily progress (miles)
+    },
+    {
+      name: 'Running',
+      goal: 30, // Total miles
+      color: 'bg-orange-500', // Orange color for running
+      daily: [5, 6, 4, 5, 7, 8, 6], // Daily progress (miles)
+    },
   ]);
 
   // Function to calculate total completed
@@ -20,8 +35,12 @@ const ProgressTracker = () => {
     setSports(updatedSports);
   };
 
+  if (!Array.isArray(sports) || sports.length === 0) {
+    return <p>Loading sports data...</p>;
+  }
+
   return (
-    <div className="space-y-4 px-6 pb-16">
+    <div className="space-y-4 pb-4">
       {/* Daily Progress Section */}
       <div className="w-full p-6 bg-gray-100 rounded-lg shadow-md mb-6 max-w-full">
         <h3 className="text-lg font-medium text-gray-800 mb-4">Daily Progress</h3>
