@@ -1,43 +1,52 @@
 import React, { useState } from 'react';
-import WorkoutCard from './WorkoutCard';
 
-const WorkoutList = ({ workouts, weeks }) => {
-  const [weeklyWorkouts, setWeeklyWorkouts] = useState(workouts); // Track workouts state with completed flag
+const WorkoutList = ({ workouts, weeks, onToggleCompletion }) => {
+  // Split workouts into weekly groups
+  const workoutsPerWeek = Math.ceil(workouts.length / weeks);
+  const weeklyWorkouts = Array.from({ length: weeks }, (_, weekIndex) =>
+    workouts.slice(weekIndex * workoutsPerWeek, (weekIndex + 1) * workoutsPerWeek)
+  );
 
-  // Toggle workout completion
-  const handleToggleCompletion = (workoutToToggle) => {
-    const updatedWorkouts = weeklyWorkouts.map((workout) =>
-      workout === workoutToToggle ? { ...workout, completed: !workout.completed } : workout
-    );
-    setWeeklyWorkouts(updatedWorkouts);
-  };
+  const [expandedWeek, setExpandedWeek] = useState(0); // Default: first week expanded
 
-  const generateWeeklyWorkouts = () => {
-    const weeklyWorkouts = [];
-    for (let i = 0; i < weeks; i++) {
-      weeklyWorkouts.push(workouts);
-    }
-    return weeklyWorkouts;
+  const toggleWeek = (weekIndex) => {
+    setExpandedWeek((prev) => (prev === weekIndex ? null : weekIndex));
   };
 
   return (
-    <div className="p-4 space-y-6">
-      {generateWeeklyWorkouts().map((week, index) => (
-        <div key={index} className="border-t-2 pt-4">
-          <div className="flex justify-between items-center">
-            <h4 className="text-lg font-semibold text-gray-700">Week {index + 1}</h4>
+    <div className="p-4">
+      {weeklyWorkouts.map((week, weekIndex) => (
+        <div key={weekIndex} className="mb-6">
+          <div
+            className="flex justify-between items-center py-2 px-4 bg-blue-200 cursor-pointer rounded hover:bg-blue-300"
+            onClick={() => toggleWeek(weekIndex)}
+            aria-expanded={expandedWeek === weekIndex}
+          >
+            <h4 className="text-lg font-semibold text-gray-700">Week {weekIndex + 1}</h4>
+            <span>{expandedWeek === weekIndex ? '▲' : '▼'}</span>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-            {week.map((workout, i) => (
-              <WorkoutCard
-                key={i}
-                workout={workout}
-                day={i + 1}
-                onToggleCompletion={handleToggleCompletion}
-              />
-            ))}
-          </div>
+          {expandedWeek === weekIndex && (
+            <ul className="space-y-2 mt-2">
+              {week.map((workout, dayIndex) => (
+                <li
+                  key={dayIndex}
+                  className={`flex justify-between items-center py-2 px-4 rounded ${
+                    workout.completed ? 'bg-green-100' : 'bg-red-100'
+                  }`}
+                >
+                  <span className="text-gray-700">Day {dayIndex + 1}: {workout.name}</span>
+                  <button
+                    className={`py-1 px-4 rounded ${
+                      workout.completed ? 'bg-green-500 text-white' : 'bg-blue-500 text-white'
+                    }`}
+                    onClick={() => onToggleCompletion(workout)}
+                  >
+                    {workout.completed ? 'Completed' : 'Mark as Done'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       ))}
     </div>
