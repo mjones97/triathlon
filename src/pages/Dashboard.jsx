@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import GreetingBox from '../components/GreetingBox';
-import Progress from '../components/Progress';
-import WeeklyGoalTracker from '../components/WeeklyGoalTracker';
+import DailyProgress from '../components/DailyProgress';
+import TrainingProgress from '../components/TrainingProgress';
 
 const Dashboard = ({ isDarkMode, sports }) => {
   const [trainingPlan, setTrainingPlan] = useState(null);
   const [trainingProgress, setTrainingProgress] = useState(null);
-  const [currentPhase, setCurrentPhase] = useState('base'); // Current phase starts as 'base'
+  const [currentPhase, setCurrentPhase] = useState('base');
 
   useEffect(() => {
     const savedPlan = localStorage.getItem('trainingPlan');
@@ -22,7 +22,7 @@ const Dashboard = ({ isDarkMode, sports }) => {
   // Function to get completed workouts for the current phase
   const getCompletedWorkouts = (phase) => {
     if (!trainingProgress || !trainingProgress[phase]) return 0;
-    return trainingProgress[phase].filter(workout => workout.completed).length;
+    return trainingProgress[phase].filter((workout) => workout.completed).length;
   };
 
   // Function to get total workouts for the current phase
@@ -39,40 +39,47 @@ const Dashboard = ({ isDarkMode, sports }) => {
     return (completed / total) * 100;
   };
 
-  const progressPercentage = calculateProgressPercentage(currentPhase); // Calculate progress percentage for current phase
+  const progressPercentage = calculateProgressPercentage(currentPhase);
+
+  // Function to handle workout completion (updating localStorage)
+  const handleWorkoutCompletion = (sport, dayIndex, progress) => {
+    const updatedProgress = { ...trainingProgress };
+    const workoutIndex = updatedProgress[currentPhase].findIndex(
+      (workout, index) => index === dayIndex
+    );
+    
+    if (workoutIndex !== -1) {
+      updatedProgress[currentPhase][workoutIndex].completed = true;
+      updatedProgress[currentPhase][workoutIndex].progress = progress;
+      
+      setTrainingProgress(updatedProgress);
+      localStorage.setItem('trainingProgress', JSON.stringify(updatedProgress));
+    }
+  };
 
   return (
-    <section className="dashboard pt-14">
-      <div className="container px-6">
-        <div className="flex justify-center items-center h-64">
+    <section className="dashboard">
+      <div className="container flex flex-col justify-center items-center px-6 py-16">
+        <div className="py-4 w-full">
           <GreetingBox />
         </div>
 
-        {trainingProgress && (
-          <div className="mb-8 bg-white p-6 rounded-lg shadow-md">
-            <h3 className="text-2xl font-semibold mb-4 text-gray-800">Your {currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)} Phase Progress</h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <p className="text-lg text-gray-700">{currentPhase.charAt(0).toUpperCase() + currentPhase.slice(1)} Phase</p>
-                <p className="text-lg text-gray-500">{progressPercentage.toFixed(1)}% workouts completed</p>
-              </div>
-              {/* Progress bar */}
-              <div className="w-full bg-gray-300 rounded-full h-4">
-                <div
-                  className="bg-blue-500 h-4 rounded-full"
-                  style={{
-                    width: `${progressPercentage}%`,
-                    maxWidth: '100%',
-                  }}
-                ></div>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="py-4 w-full">
+          {trainingProgress && (
+            <TrainingProgress
+              currentPhase={currentPhase}
+              progressPercentage={progressPercentage}
+            />
+          )}
+        </div>
 
-        <div className="progress">
+        <div className="py-4 w-full">
           <div className="daily">
-            <Progress sports={sports} />
+            <DailyProgress
+              sports={sports}
+              completedWorkouts={trainingProgress ? trainingProgress[currentPhase] : []}
+              onComplete={handleWorkoutCompletion}
+            />
           </div>
         </div>
       </div>

@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import TrainingDurationInput from '../components/TrainingDurationInput';
 import Phase from '../components/Phase';
+import TrainingDurationInput from '../components/TrainingDurationInput';
 
 const TrainingPlan = ({ isDarkMode }) => {
-  const [weeksAvailable, setWeeksAvailable] = useState(null);
-  const [adjustedPlan, setAdjustedPlan] = useState(null);
   const [progress, setProgress] = useState(null);
-  const [error, setError] = useState(null);
+  const [weeksAvailable, setWeeksAvailable] = useState(0);
+  const [adjustedPlan, setAdjustedPlan] = useState(null);
 
-  // Define workouts for each phase
   const phaseWorkouts = {
     base: [
       { name: "Easy Run: 45 min", completed: false },
@@ -48,146 +46,67 @@ const TrainingPlan = ({ isDarkMode }) => {
     ],
   };
 
-  // Adjust plan based on user input (weeks)
-  const adjustPlan = (weeks) => {
-    const baseWeeks = Math.floor(weeks * 0.4);
-    const buildWeeks = Math.floor(weeks * 0.3);
-    const peakWeeks = Math.floor(weeks * 0.2);
-    const taperWeeks = weeks - (baseWeeks + buildWeeks + peakWeeks); // Ensure total weeks add up
-
-    const plan = {
-      baseWeeks,
-      buildWeeks,
-      peakWeeks,
-      taperWeeks,
-    };
-
-    const initialProgress = {
-      base: Array(baseWeeks).fill(false), // All weeks are initially marked as incomplete
-      build: Array(buildWeeks).fill(false),
-      peak: Array(peakWeeks).fill(false),
-      taper: Array(taperWeeks).fill(false),
-    };
-
-    setAdjustedPlan(plan);
-    setProgress(initialProgress);
-
-    // Save the training plan and initial progress to localStorage
-    localStorage.setItem('trainingPlan', JSON.stringify(plan));
-    localStorage.setItem('trainingProgress', JSON.stringify(initialProgress));
-    localStorage.setItem('weeksAvailable', weeks); // Save weeks to localStorage
-
-    setError(null); // Clear error if plan is valid
-  };
-
-  const handleSubmit = (weeks) => {
-    if (isNaN(weeks) || weeks <= 0) {
-      setError('Please enter a valid number of weeks (greater than 0).');
-      return;
-    }
-    setWeeksAvailable(weeks);
-    adjustPlan(weeks);
-  };
-
-  const handleReset = () => {
-    // Reset the weeksAvailable value
-    setWeeksAvailable(null);
-    setAdjustedPlan(null);
-    setProgress(null);
-    setError(null);
-
-    // Clear the stored plan and progress from localStorage
-    localStorage.removeItem('weeksAvailable');
-    localStorage.removeItem('trainingPlan');
-    localStorage.removeItem('trainingProgress');
-  };
-
-  // Function to handle marking a workout as completed
-  const toggleWorkoutCompletion = (phase, workoutIndex) => {
-    const updatedWorkouts = { ...phaseWorkouts };
-    updatedWorkouts[phase][workoutIndex].completed = !updatedWorkouts[phase][workoutIndex].completed;
+  const handleToggleCompletion = (phase, workoutToToggle) => {
+    const updatedWorkouts = { ...progress }; // Ensure progress is updated instead of phaseWorkouts directly
+    const updatedPhase = updatedWorkouts[phase].map((workout) =>
+      workout === workoutToToggle ? { ...workout, completed: !workout.completed } : workout
+    );
+    updatedWorkouts[phase] = updatedPhase;
     setProgress(updatedWorkouts);
 
-    // Save updated workouts to localStorage
+    // Save updated progress in localStorage
     localStorage.setItem('trainingProgress', JSON.stringify(updatedWorkouts));
   };
 
-  useEffect(() => {
-    // Load training plan and progress from localStorage if available
-    const savedPlan = localStorage.getItem('trainingPlan');
-    const savedProgress = localStorage.getItem('trainingProgress');
-    const savedWeeks = localStorage.getItem('weeksAvailable'); // Load weeksAvailable from localStorage
+  const handleTrainingDurationSubmit = (weeks) => {
+    setWeeksAvailable(weeks);
+    updatePlan(weeks); // Adjust the plan based on the number of weeks
+  };
 
-    if (savedPlan) {
-      setAdjustedPlan(JSON.parse(savedPlan));
-    }
+  const updatePlan = (weeks) => {
+    const adjusted = { ...phaseWorkouts };
+    Object.keys(adjusted).forEach((phaseKey) => {
+      const phase = adjusted[phaseKey];
+      const totalWorkouts = phase.length;
+      const adjustedWorkoutsCount = Math.floor((weeks / 12) * totalWorkouts); // Adjust based on the weeks available
+
+      adjusted[phaseKey] = phase.slice(0, adjustedWorkoutsCount); // Slice the workouts based on weeks
+    });
+    setAdjustedPlan(adjusted);
+  };
+
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('trainingProgress');
     if (savedProgress) {
       setProgress(JSON.parse(savedProgress));
-    }
-    if (savedWeeks) {
-      setWeeksAvailable(Number(savedWeeks)); // Parse saved weeks from localStorage
     }
   }, []);
 
   return (
-    <section className="training pt-20">
-      <div className="container px-6">
-        {!weeksAvailable ? (
-          <TrainingDurationInput onSubmit={handleSubmit} />
-        ) : (
+    <div className="training-plan">
+      <div className="container flex flex-col justify-center items-center px-6 pt-20 pb-10">
+
+        {/* Show the Training Duration Input */}
+        <TrainingDurationInput onSubmit={handleTrainingDurationSubmit} />
+
+        {/* Render Training Plan Phases after setting the weeks */}
+        {adjustedPlan && (
           <div>
-            <h2 className="text-2xl font-bold text-center mb-8">Your Custom Training Plan</h2>
-
-            {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-
-            <div className="space-y-8">
-              <Phase
-                title="Base Phase"
-                weeks={adjustedPlan.baseWeeks}
-                workouts={phaseWorkouts.base}
-                progress={progress.base}
-                toggleWorkoutCompletion={toggleWorkoutCompletion}
-                phase="base"
-              />
-              <Phase
-                title="Build Phase"
-                weeks={adjustedPlan.buildWeeks}
-                workouts={phaseWorkouts.build}
-                progress={progress.build}
-                toggleWorkoutCompletion={toggleWorkoutCompletion}
-                phase="build"
-              />
-              <Phase
-                title="Peak Phase"
-                weeks={adjustedPlan.peakWeeks}
-                workouts={phaseWorkouts.peak}
-                progress={progress.peak}
-                toggleWorkoutCompletion={toggleWorkoutCompletion}
-                phase="peak"
-              />
-              <Phase
-                title="Taper Phase"
-                weeks={adjustedPlan.taperWeeks}
-                workouts={phaseWorkouts.taper}
-                progress={progress.taper}
-                toggleWorkoutCompletion={toggleWorkoutCompletion}
-                phase="taper"
-              />
-            </div>
-
-            {/* Add the Reset Button */}
-            <div className="mt-8 text-center">
-              <button
-                onClick={handleReset}
-                className="px-6 py-2 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600"
-              >
-                Reset Training Plan
-              </button>
-            </div>
+            {Object.keys(adjustedPlan).map((phaseKey) => {
+              const phase = adjustedPlan[phaseKey];
+              return (
+                <Phase
+                  key={phaseKey}
+                  title={phaseKey.charAt(0).toUpperCase() + phaseKey.slice(1)} // Capitalize the phase name
+                  workouts={phase} // Pass the adjusted workouts
+                  onToggleCompletion={(workout) => handleToggleCompletion(phaseKey, workout)}
+                />
+              );
+            })}
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 };
 
