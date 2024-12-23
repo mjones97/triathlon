@@ -1,9 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-.greeting-box {
-	background-image: url('https://bettertriathlete.com/wp-content/uploads/2023/07/triathlon-swim-workouts.jpg');
-	background-position: center;
-	background-size: cover;
-}
